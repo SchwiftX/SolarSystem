@@ -25,6 +25,13 @@ using namespace std;
 
 bool saveOutput = false;
 float timePast = 0;
+float angleEarthRevolution = 0;
+float angleMoonRevolution = 0;
+float angleEarthRotation = 0;
+float angleMoonRotation = 0;
+float adjustEarthRev = 0;
+float adjustMoonRev = 0;
+float baseSpeed = .1;
 
 //SJG: Store the object coordinates
 //You should have a representation for the state of each object
@@ -313,11 +320,29 @@ int main(int argc, char *argv[]){
 			//     We can use the ".mod" flag to see if modifiers such as shift are pressed
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_UP){ //If "up key" is pressed
 				if (windowEvent.key.keysym.mod & KMOD_SHIFT) objz += .1; //Is shift pressed?
-				else objx -= .1;
+				else {
+					//objx -= .1;
+					float oldEarth = (.3 + baseSpeed*timePast) * 3.14f - adjustEarthRev;
+					float oldMoon = baseSpeed*12.f*timePast * 3.14f - adjustMoonRev;
+					baseSpeed *= 5;
+					float newEarth = (.3 + baseSpeed*timePast) * 3.14f;
+					float newMoon = baseSpeed*12.f*timePast * 3.14f;
+					adjustEarthRev = newEarth - oldEarth;
+					adjustMoonRev = newMoon - oldMoon;
+				}
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_DOWN){ //If "down key" is pressed
 				if (windowEvent.key.keysym.mod & KMOD_SHIFT) objz -= .1; //Is shift pressed?
-				else objx += .1;
+				else {
+					//objx += .1;
+					float oldEarth = (.3 + baseSpeed*timePast) * 3.14f - adjustEarthRev;
+					float oldMoon = baseSpeed*12.f*timePast * 3.14f - adjustMoonRev;
+					baseSpeed /= 5;
+					float newEarth = (.3 + baseSpeed*timePast) * 3.14f;
+					float newMoon = baseSpeed*12.f*timePast * 3.14f;
+					adjustEarthRev = newEarth - oldEarth;
+					adjustMoonRev = newMoon - oldMoon;
+				}
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_LEFT){ //If "up key" is pressed
 				objy += .1;
@@ -350,6 +375,15 @@ int main(int argc, char *argv[]){
       newTime = SDL_GetTicks()/1000.f;
       //printf("%f FPS\n",1/(newTime-lastTime));
       lastTime = SDL_GetTicks()/1000.f;
+	  angleEarthRevolution = (.3+ baseSpeed*timePast) * 3.14f - adjustEarthRev;
+	  angleMoonRevolution = baseSpeed*12.f*timePast * 3.14f - adjustMoonRev;
+	  angleEarthRotation = baseSpeed*365.f*timePast * 3.14f;
+	  angleMoonRotation = baseSpeed*365.f*timePast * 3.14f;
+	  float radiusOfEarth = 8.f;
+	  float radiusOfMoon = 1.2f;
+	  glm::vec3 sunPos = glm::vec3(0, 0, 0);
+	  glm::vec3 earthPos = sunPos + glm::vec3(radiusOfEarth*sin(angleEarthRevolution), radiusOfEarth*cos(angleEarthRevolution), 0);
+	  glm::vec3 moonPos = earthPos + glm::vec3(radiusOfMoon*sin(angleMoonRevolution), radiusOfMoon*cos(angleMoonRevolution), 0);
       
 			
 			glUseProgram(modelShader); //Use the normal model shader (phong) for each eye
@@ -376,11 +410,11 @@ int main(int argc, char *argv[]){
         
 		
 		float near_ = .5;
-		float far_ = 10;
+		float far_ = 80;
 		float ratio  = screenWidth / (float)screenHeight;
-		float fov = 3.14f/4;
+		float fov = 3.14f/3.5;
 		
-		glm::vec3 camPos = glm::vec3(3.0f, 0.0f, 0.0f);
+		glm::vec3 camPos = glm::vec3(16.0f, 0.0f, 4.0f);
 		glm::vec3 lookAt = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 right = glm::vec3(0.0f, 1.0f, 0.0f); //TODO: Recompute this!
 		
@@ -388,7 +422,7 @@ int main(int argc, char *argv[]){
 			glm::mat4 view = glm::lookAt(
 			camPos,  //Cam Position
 			lookAt,  //Look at point
-			glm::vec3(0.0f, 0.0f, 1.0f)); //Up
+			glm::vec3(-4.0f, 0.0f, 16.0f)); //Up
 		
 			glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
 		
@@ -397,7 +431,7 @@ int main(int argc, char *argv[]){
 			glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(proj));
 		
 		glm::mat4 model;
-		model = glm::translate(model,glm::vec3(objx,objy,objz));
+		//model = glm::translate(model,glm::vec3(objx,objy,objz));
 		
       
 		glBindTexture(GL_TEXTURE_2D, tex);
@@ -406,55 +440,45 @@ int main(int argc, char *argv[]){
 		
 		
 		//timePast = .5;
-		model = glm::rotate(model,.4f*timePast * 3.14f/2,glm::vec3(0.0f, 1.0f, 1.0f));
-		model = glm::rotate(model,.4f*timePast * 3.14f/4,glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::scale(model,1.f*glm::vec3(1.f,1.f,1.f)); //An example of scale
+		model = glm::translate(model, sunPos);
+		model = glm::scale(model, 3.f*glm::vec3(1.f, 1.f, 1.f)); //An example of scale
 		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-		
-		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.0f, 0.5f, 0.0f)));
-		
-		glDrawArrays(GL_TRIANGLES, mStart[0], mEnd[0]-mStart[0]); //(Primitives, Start, Number of vertices)
-		
+		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.4f, 0.2f, .7f)));
+		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3] - mStart[3]);//Sphere as Sun
+
 		model = glm::mat4();
-		model = glm::translate(model,glm::vec3(-1.3,1.85,-.6));
-		model = glm::rotate(model,-.2f*timePast * 3.14f/2,glm::vec3(0.0f, 1.0f, 1.0f));
-		model = glm::rotate(model,-.2f*timePast * 3.14f/4,glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::scale(model,1.f*glm::vec3(1.f,1.f,1.f)); //An example of scale
+		model = glm::translate(model, earthPos);
+		model = glm::rotate(model,angleEarthRotation,glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::scale(model, 1.f*glm::vec3(1.f, 1.f, 1.f)); //An example of scale
 		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-		
 		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.8f, .3f, .0f)));
+		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3] - mStart[3]); //Knob as earth
+
+		model = glm::mat4();
+		model = glm::translate(model, moonPos);
+		model = glm::rotate(model,angleMoonRotation,glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::scale(model,.5f*glm::vec3(1.f,1.f,1.f)); //An example of scale
+		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.0f, 0.5f, 0.0f)));
+		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3]-mStart[3]); //(Primitives, Start, Number of vertices)//Teapot as moon
 		
-		glDrawArrays(GL_TRIANGLES, mStart[1], mEnd[1]-mStart[1]); 
-		
+		/*
 		model = glm::mat4();
 		model = glm::translate(model,glm::vec3(-1,-1.6,0));
 		model = glm::rotate(model,-.2f*timePast * 3.14f/2,glm::vec3(0.0f, 1.0f, 1.0f));
 		model = glm::rotate(model,-.2f*timePast * 3.14f/4,glm::vec3(1.0f, 0.0f, 0.0f));
 		model = glm::scale(model,.8f*glm::vec3(1.f,1.f,1.f)); //An example of scale
 		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-		
 		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(0.1f, 0.1f, .9f)));
-		glDrawArrays(GL_TRIANGLES, mStart[2], mEnd[2]-mStart[2]);
-		
-		
-		model = glm::mat4();
-		model = glm::translate(model,glm::vec3(-7.2,2.5,2.3));
-		model = glm::rotate(model,-.2f*timePast * 3.14f/2,glm::vec3(0.0f, 1.0f, 1.0f));
-		model = glm::rotate(model,-.2f*timePast * 3.14f/4,glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::scale(model,1.9f*glm::vec3(1.f,1.f,1.f)); //An example of scale
-		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-		
-		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.4f, 0.2f, .7f)));
-		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3]-mStart[3]);
-		
+		glDrawArrays(GL_TRIANGLES, mStart[2], mEnd[2]-mStart[2]);//Cube
+		*/
 		
 		model = glm::mat4();
-		model = glm::translate(model,glm::vec3(0,0,-1.2));
-		model = glm::scale(model,.8f*glm::vec3(40.f,10.f,.1f)); //An example of scale
+		model = glm::translate(model,glm::vec3(0,0,-3.2));
+		model = glm::scale(model,1.f*glm::vec3(40.f,60.f,.1f)); //An example of scale
 		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-		
 		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(0.6f, 0.6f, .6f)));
-		glDrawArrays(GL_TRIANGLES, mStart[2], mEnd[2]-mStart[2]);
+		glDrawArrays(GL_TRIANGLES, mStart[2], mEnd[2]-mStart[2]);//Cube as ground
 		
     }
       
