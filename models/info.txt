@@ -1,0 +1,4 @@
+Models From: Prof. Dr. Thorsten Thormählen
+http://www.uni-marburg.de/fb12/grafikmultimedia-en/team/thormae-en?language_sync=1
+
+http://www.mathematik.uni-marburg.de/~thormae/lectures/graphics1/code/WebGLShaderLightMat/ShaderLightMat.html

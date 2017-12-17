@@ -1,0 +1,15 @@
+﻿  RenderToTexture.cpp
+..\..\..\..\Desktop\RenderToTexture\RenderToTexture.cpp(293): warning C4305: “初始化”: 从“double”到“float”截断
+..\..\..\..\Desktop\RenderToTexture\RenderToTexture.cpp(315): warning C4305: “+=”: 从“double”到“float”截断
+..\..\..\..\Desktop\RenderToTexture\RenderToTexture.cpp(316): warning C4305: “-=”: 从“double”到“float”截断
+..\..\..\..\Desktop\RenderToTexture\RenderToTexture.cpp(319): warning C4305: “-=”: 从“double”到“float”截断
+..\..\..\..\Desktop\RenderToTexture\RenderToTexture.cpp(320): warning C4305: “+=”: 从“double”到“float”截断
+..\..\..\..\Desktop\RenderToTexture\RenderToTexture.cpp(323): warning C4305: “+=”: 从“double”到“float”截断
+..\..\..\..\Desktop\RenderToTexture\RenderToTexture.cpp(326): warning C4305: “-=”: 从“double”到“float”截断
+..\..\..\..\Desktop\RenderToTexture\RenderToTexture.cpp(329): warning C4305: “+=”: 从“double”到“float”截断
+..\..\..\..\Desktop\RenderToTexture\RenderToTexture.cpp(333): warning C4305: “-=”: 从“double”到“float”截断
+..\..\..\..\Desktop\RenderToTexture\RenderToTexture.cpp(348): warning C4305: “+=”: 从“double”到“float”截断
+..\..\..\..\Desktop\RenderToTexture\RenderToTexture.cpp(471): warning C4101: “height”: 未引用的局部变量
+..\..\..\..\Desktop\RenderToTexture\RenderToTexture.cpp(471): warning C4101: “width”: 未引用的局部变量
+..\..\..\..\Desktop\RenderToTexture\RenderToTexture.cpp(472): warning C4101: “image”: 未引用的局部变量
+LINK : fatal error LNK1181: 无法打开输入文件“SDL2.lib”
