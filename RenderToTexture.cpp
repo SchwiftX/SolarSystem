@@ -31,6 +31,8 @@ float angleEarthRotation = 0;
 float angleMoonRotation = 0;
 float adjustEarthRev = 0;
 float adjustMoonRev = 0;
+float adjustEarthRot = 0;
+float adjustMoonRot = 0;
 float baseSpeed = .1;
 
 //SJG: Store the object coordinates
@@ -322,26 +324,38 @@ int main(int argc, char *argv[]){
 				if (windowEvent.key.keysym.mod & KMOD_SHIFT) objz += .1; //Is shift pressed?
 				else {
 					//objx -= .1;
-					float oldEarth = (.3 + baseSpeed*timePast) * 3.14f - adjustEarthRev;
+					float oldEarth = baseSpeed*timePast * 3.14f - adjustEarthRev;
 					float oldMoon = baseSpeed*12.f*timePast * 3.14f - adjustMoonRev;
+					float oldEarthRot = -365.f*baseSpeed*timePast * 3.14f - adjustEarthRot;
+					float oldMoonRot = -12.f*baseSpeed*timePast * 3.14f - adjustMoonRot;
 					baseSpeed *= 5;
-					float newEarth = (.3 + baseSpeed*timePast) * 3.14f;
+					float newEarth = baseSpeed*timePast * 3.14f;
 					float newMoon = baseSpeed*12.f*timePast * 3.14f;
+					float newEarthRot = -365.f*baseSpeed*timePast * 3.14f;
+					float newMoonRot = -12.f*baseSpeed*timePast * 3.14f;
 					adjustEarthRev = newEarth - oldEarth;
 					adjustMoonRev = newMoon - oldMoon;
+					adjustEarthRot = newEarthRot - oldEarthRot;
+					adjustMoonRot = newMoonRot - oldMoonRot;
 				}
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_DOWN){ //If "down key" is pressed
 				if (windowEvent.key.keysym.mod & KMOD_SHIFT) objz -= .1; //Is shift pressed?
 				else {
 					//objx += .1;
-					float oldEarth = (.3 + baseSpeed*timePast) * 3.14f - adjustEarthRev;
+					float oldEarth = baseSpeed*timePast * 3.14f - adjustEarthRev;
 					float oldMoon = baseSpeed*12.f*timePast * 3.14f - adjustMoonRev;
+					float oldEarthRot = -365.f*baseSpeed*timePast * 3.14f - adjustEarthRot;
+					float oldMoonRot = -12.f*baseSpeed*timePast * 3.14f - adjustMoonRot;
 					baseSpeed /= 5;
-					float newEarth = (.3 + baseSpeed*timePast) * 3.14f;
+					float newEarth = baseSpeed*timePast * 3.14f;
 					float newMoon = baseSpeed*12.f*timePast * 3.14f;
+					float newEarthRot = -365.f*baseSpeed*timePast * 3.14f;
+					float newMoonRot = -12.f*baseSpeed*timePast * 3.14f;
 					adjustEarthRev = newEarth - oldEarth;
 					adjustMoonRev = newMoon - oldMoon;
+					adjustEarthRot = newEarthRot - oldEarthRot;
+					adjustMoonRot = newMoonRot - oldMoonRot;
 				}
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_LEFT){ //If "up key" is pressed
@@ -375,10 +389,10 @@ int main(int argc, char *argv[]){
       newTime = SDL_GetTicks()/1000.f;
       //printf("%f FPS\n",1/(newTime-lastTime));
       lastTime = SDL_GetTicks()/1000.f;
-	  angleEarthRevolution = (.3+ baseSpeed*timePast) * 3.14f - adjustEarthRev;
-	  angleMoonRevolution = baseSpeed*12.f*timePast * 3.14f - adjustMoonRev;
-	  angleEarthRotation = baseSpeed*365.f*timePast * 3.14f;
-	  angleMoonRotation = baseSpeed*365.f*timePast * 3.14f;
+	  angleEarthRevolution = baseSpeed*timePast * 3.14f - adjustEarthRev;
+	  angleMoonRevolution = 12.f*baseSpeed*timePast * 3.14f - adjustMoonRev;
+	  angleEarthRotation = -365.f*baseSpeed*timePast * 3.14f - adjustEarthRot;
+	  angleMoonRotation = -12.f*baseSpeed*timePast * 3.14f - adjustMoonRot;
 	  float radiusOfEarth = 8.f;
 	  float radiusOfMoon = 1.2f;
 	  glm::vec3 sunPos = glm::vec3(0, 0, 0);
@@ -452,7 +466,7 @@ int main(int argc, char *argv[]){
 		model = glm::scale(model, 1.f*glm::vec3(1.f, 1.f, 1.f)); //An example of scale
 		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
 		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.8f, .3f, .0f)));
-		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3] - mStart[3]); //Knob as earth
+		glDrawArrays(GL_TRIANGLES, mStart[1], mEnd[1] - mStart[1]); //Knob as earth
 
 		model = glm::mat4();
 		model = glm::translate(model, moonPos);
@@ -460,7 +474,7 @@ int main(int argc, char *argv[]){
 		model = glm::scale(model,.5f*glm::vec3(1.f,1.f,1.f)); //An example of scale
 		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
 		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.0f, 0.5f, 0.0f)));
-		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3]-mStart[3]); //(Primitives, Start, Number of vertices)//Teapot as moon
+		glDrawArrays(GL_TRIANGLES, mStart[0], mEnd[0]-mStart[0]); //(Primitives, Start, Number of vertices)//Teapot as moon
 		
 		/*
 		model = glm::mat4();
