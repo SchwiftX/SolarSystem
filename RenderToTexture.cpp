@@ -29,6 +29,7 @@ float angleEarthRevolution = 0;
 float angleMoonRevolution = 0;
 float angleEarthRotation = 0;
 float angleMoonRotation = 0;
+float angleSaturnRevolution = 0;
 float adjustEarthRev = 0;
 float adjustMoonRev = 0;
 float adjustEarthRot = 0;
@@ -79,11 +80,11 @@ int main(int argc, char *argv[]){
 	//Full screen quad (for render to texture)
 	float quad[24] = {1,1,0,1, -1,1,1,1, -1,-1,1,0,  1,-1,0,0, 1,1,0,1, -1,-1,1,0,};
 
-	const int numModels = 4;
+	const int numModels = 5;
 	int mStart[numModels], mEnd[numModels];
 	ifstream modelFile;
 	int numLines;
-	float* model0, *model1, *model2, *model3;
+	float* model0, *model1, *model2, *model3, *model4;
 		
 	//Load Model 0
 	modelFile.open("models/teapot.txt");
@@ -136,6 +137,19 @@ int main(int argc, char *argv[]){
 	mStart[3] = mEnd[2];
 	mEnd[3] = mStart[3] + numLines/8;
 	modelFile.close();
+
+	//Load Model 4
+	modelFile.open("models/donut.txt");
+	numLines = 0;
+	modelFile >> numLines;
+	model4 = new float[numLines];
+	for (int i = 0; i < numLines; i++) {
+		modelFile >> model4[i];
+	}
+	printf("Mode line count: %d\n", numLines);
+	mStart[4] = mEnd[3];
+	mEnd[4] = mStart[4] + numLines / 8;
+	modelFile.close();
 	
 	
 	//Concatenate model arrays
@@ -144,6 +158,7 @@ int main(int argc, char *argv[]){
 	copy(model1, model1+(mEnd[1]-mStart[1])*8, modelData+mEnd[0]*8);
 	copy(model2, model2+(mEnd[2]-mStart[2])*8, modelData+mEnd[1]*8);
 	copy(model3, model3+(mEnd[3]-mStart[3])*8, modelData+mEnd[2]*8);
+	copy(model4, model4+(mEnd[4]-mStart[4])*8, modelData+mEnd[3]*8);
 
 	
 	
@@ -398,6 +413,10 @@ int main(int argc, char *argv[]){
 	  glm::vec3 sunPos = glm::vec3(0, 0, 0);
 	  glm::vec3 earthPos = sunPos + glm::vec3(radiusOfEarth*sin(angleEarthRevolution), radiusOfEarth*cos(angleEarthRevolution), 0);
 	  glm::vec3 moonPos = earthPos + glm::vec3(radiusOfMoon*sin(angleMoonRevolution), radiusOfMoon*cos(angleMoonRevolution), 0);
+	  float radiusOfSaturn = 12.f;
+	  angleSaturnRevolution = .3*baseSpeed*timePast*3.14f;
+	  glm::vec3 saturnPos = sunPos + glm::vec3(radiusOfSaturn*sin(angleSaturnRevolution), radiusOfSaturn*cos(angleSaturnRevolution), 0);
+
       
 			
 			glUseProgram(modelShader); //Use the normal model shader (phong) for each eye
@@ -424,11 +443,11 @@ int main(int argc, char *argv[]){
         
 		
 		float near_ = .5;
-		float far_ = 80;
+		float far_ = 100;
 		float ratio  = screenWidth / (float)screenHeight;
 		float fov = 3.14f/3.5;
 		
-		glm::vec3 camPos = glm::vec3(16.0f, 0.0f, 4.0f);
+		glm::vec3 camPos = glm::vec3(32.0f, 0.0f, 8.0f);
 		glm::vec3 lookAt = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 right = glm::vec3(0.0f, 1.0f, 0.0f); //TODO: Recompute this!
 		
@@ -436,7 +455,7 @@ int main(int argc, char *argv[]){
 			glm::mat4 view = glm::lookAt(
 			camPos,  //Cam Position
 			lookAt,  //Look at point
-			glm::vec3(-4.0f, 0.0f, 16.0f)); //Up
+			glm::vec3(-1.0f, 0.0f, 4.0f)); //Up
 		
 			glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
 		
@@ -466,7 +485,7 @@ int main(int argc, char *argv[]){
 		model = glm::rotate(model, angleEarthRotation, glm::vec3(0.0f, 0.f, 1.f));
 		model = glm::scale(model, 1.f*glm::vec3(1.f, 1.f, 1.f)); //An example of scale
 		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.8f, .3f, .0f)));
+		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(0.1f, 0.1f, .9f)));
 		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3] - mStart[3]); //Earth
 
 		model = glm::mat4();
@@ -476,6 +495,21 @@ int main(int argc, char *argv[]){
 		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
 		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.0f, 0.5f, 0.0f)));
 		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3]-mStart[3]); //(Primitives, Start, Number of vertices)//Moon
+
+
+		model = glm::mat4();
+		model = glm::translate(model, saturnPos);
+		model = glm::scale(model, 1.f*glm::vec3(1.f, 1.f, 1.f)); //An example of scale
+		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.8f, .3f, .0f)));
+		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3] - mStart[3]); //Saturn
+
+		model = glm::mat4();
+		model = glm::translate(model, saturnPos);
+		model = glm::scale(model, 1.f*glm::vec3(1.f, 1.f, .1f)); //An example of scale
+		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.8f, .3f, .0f)));
+		glDrawArrays(GL_TRIANGLES, mStart[4], mEnd[4] - mStart[4]); //Saturn ring
 		
 		/*
 		model = glm::mat4();
