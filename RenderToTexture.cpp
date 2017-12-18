@@ -462,11 +462,12 @@ int main(int argc, char *argv[]){
 
 		model = glm::mat4();
 		model = glm::translate(model, earthPos);
-		model = glm::rotate(model,angleEarthRotation,glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::rotate(model, 23.f/180.f*3.14f, glm::vec3(1.0f, 0.f, 0.0f));//obliquity of the ecliptic
+		model = glm::rotate(model, angleEarthRotation, glm::vec3(0.0f, 0.f, 1.f));
 		model = glm::scale(model, 1.f*glm::vec3(1.f, 1.f, 1.f)); //An example of scale
 		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
 		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.8f, .3f, .0f)));
-		glDrawArrays(GL_TRIANGLES, mStart[1], mEnd[1] - mStart[1]); //Knob as earth
+		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3] - mStart[3]); //Earth
 
 		model = glm::mat4();
 		model = glm::translate(model, moonPos);
@@ -474,7 +475,7 @@ int main(int argc, char *argv[]){
 		model = glm::scale(model,.5f*glm::vec3(1.f,1.f,1.f)); //An example of scale
 		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
 		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.0f, 0.5f, 0.0f)));
-		glDrawArrays(GL_TRIANGLES, mStart[0], mEnd[0]-mStart[0]); //(Primitives, Start, Number of vertices)//Teapot as moon
+		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3]-mStart[3]); //(Primitives, Start, Number of vertices)//Moon
 		
 		/*
 		model = glm::mat4();
