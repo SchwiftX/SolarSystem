@@ -25,16 +25,18 @@ using namespace std;
 
 bool saveOutput = false;
 float timePast = 0;
-float angleEarthRevolution = 0;
-float angleMoonRevolution = 0;
-float angleEarthRotation = 0;
-float angleMoonRotation = 0;
-float angleSaturnRevolution = 0;
-float adjustEarthRev = 0;
-float adjustMoonRev = 0;
-float adjustEarthRot = 0;
-float adjustMoonRot = 0;
-float baseSpeed = .1;
+
+
+
+const int numPlanets = 7;//0.mercury;1.venus;2.earth;3.moon;4.mars;5.jupiter;6.saturn;
+float planetAngleRevolutions[numPlanets];
+float planetAngleRotations[numPlanets];
+float planetRevolutionSpeeds[numPlanets] = {.4f,.25f,.1f,1.2f,.08f,.05f,.03f};//–¥À¿
+float planetRotationSpeeds[numPlanets] = {50.f,42.f,-36.5f,-1.2f,14.f,7.f,5.f};//–¥À¿
+float planetRadius[numPlanets] = {2.f,3.5f,6.3f,1.2f,7.9f,12.f,15.f};//–¥À¿
+float planetSizes[numPlanets] = { .3f,.5f,1.f,.4f,.8f,2.5f,1.f };//–¥À¿
+float planetRevolutionAdjustments[numPlanets];
+float planetRotationAdjustments[numPlanets];
 
 //SJG: Store the object coordinates
 //You should have a representation for the state of each object
@@ -339,6 +341,7 @@ int main(int argc, char *argv[]){
 				if (windowEvent.key.keysym.mod & KMOD_SHIFT) objz += .1; //Is shift pressed?
 				else {
 					//objx -= .1;
+					/*
 					float oldEarth = baseSpeed*timePast * 3.14f - adjustEarthRev;
 					float oldMoon = baseSpeed*12.f*timePast * 3.14f - adjustMoonRev;
 					float oldEarthRot = -365.f*baseSpeed*timePast * 3.14f - adjustEarthRot;
@@ -351,13 +354,14 @@ int main(int argc, char *argv[]){
 					adjustEarthRev = newEarth - oldEarth;
 					adjustMoonRev = newMoon - oldMoon;
 					adjustEarthRot = newEarthRot - oldEarthRot;
-					adjustMoonRot = newMoonRot - oldMoonRot;
+					adjustMoonRot = newMoonRot - oldMoonRot;*/
 				}
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_DOWN){ //If "down key" is pressed
 				if (windowEvent.key.keysym.mod & KMOD_SHIFT) objz -= .1; //Is shift pressed?
 				else {
 					//objx += .1;
+					/*
 					float oldEarth = baseSpeed*timePast * 3.14f - adjustEarthRev;
 					float oldMoon = baseSpeed*12.f*timePast * 3.14f - adjustMoonRev;
 					float oldEarthRot = -365.f*baseSpeed*timePast * 3.14f - adjustEarthRot;
@@ -370,7 +374,7 @@ int main(int argc, char *argv[]){
 					adjustEarthRev = newEarth - oldEarth;
 					adjustMoonRev = newMoon - oldMoon;
 					adjustEarthRot = newEarthRot - oldEarthRot;
-					adjustMoonRot = newMoonRot - oldMoonRot;
+					adjustMoonRot = newMoonRot - oldMoonRot;*/
 				}
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_LEFT){ //If "up key" is pressed
@@ -404,21 +408,14 @@ int main(int argc, char *argv[]){
       newTime = SDL_GetTicks()/1000.f;
       //printf("%f FPS\n",1/(newTime-lastTime));
       lastTime = SDL_GetTicks()/1000.f;
-	  angleEarthRevolution = baseSpeed*timePast * 3.14f - adjustEarthRev;
-	  angleMoonRevolution = 12.f*baseSpeed*timePast * 3.14f - adjustMoonRev;
-	  angleEarthRotation = -365.f*baseSpeed*timePast * 3.14f - adjustEarthRot;
-	  angleMoonRotation = -12.f*baseSpeed*timePast * 3.14f - adjustMoonRot;
-	  float radiusOfEarth = 8.f;
-	  float radiusOfMoon = 1.2f;
+	  for (int i = 0; i < numPlanets; i++) {
+		  planetAngleRevolutions[i] = planetRevolutionSpeeds[i] * timePast*3.14f - planetRevolutionAdjustments[i];
+		  planetAngleRotations[i] = planetRotationSpeeds[i] * timePast*3.14f - planetRotationAdjustments[i];
+	  }
 	  glm::vec3 sunPos = glm::vec3(0, 0, 0);
-	  glm::vec3 earthPos = sunPos + glm::vec3(radiusOfEarth*sin(angleEarthRevolution), radiusOfEarth*cos(angleEarthRevolution), 0);
-	  glm::vec3 moonPos = earthPos + glm::vec3(radiusOfMoon*sin(angleMoonRevolution), radiusOfMoon*cos(angleMoonRevolution), 0);
-	  float radiusOfSaturn = 12.f;
-	  angleSaturnRevolution = .3*baseSpeed*timePast*3.14f;
-	  glm::vec3 saturnPos = sunPos + glm::vec3(radiusOfSaturn*sin(angleSaturnRevolution), radiusOfSaturn*cos(angleSaturnRevolution), 0);
+	  glm::vec3 earthPos = sunPos + glm::vec3(planetRadius[2]*sin(planetAngleRevolutions[2]), planetRadius[2] *cos(planetAngleRevolutions[2]), 0);
+	  glm::vec3 saturnPos = sunPos + glm::vec3(planetRadius[6]*sin(planetAngleRevolutions[6]), planetRadius[6] *cos(planetAngleRevolutions[6]), 0);
 
-      
-			
 			glUseProgram(modelShader); //Use the normal model shader (phong) for each eye
       for (int pass = 0; pass < 2; pass++){
 				if (pass == 0){
@@ -447,10 +444,9 @@ int main(int argc, char *argv[]){
 		float ratio  = screenWidth / (float)screenHeight;
 		float fov = 3.14f/3.5;
 		
-		glm::vec3 camPos = glm::vec3(32.0f, 0.0f, 8.0f);
+		glm::vec3 camPos = glm::vec3(24.0f, 0.0f, 6.0f);
 		glm::vec3 lookAt = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 right = glm::vec3(0.0f, 1.0f, 0.0f); //TODO: Recompute this!
-		
 			
 			glm::mat4 view = glm::lookAt(
 			camPos,  //Cam Position
@@ -458,7 +454,6 @@ int main(int argc, char *argv[]){
 			glm::vec3(-1.0f, 0.0f, 4.0f)); //Up
 		
 			glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
-		
 		
 			glm::mat4 proj = glm::perspective(fov, ratio, near_, far_); //FOV, aspect, near, far
 			glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(proj));
@@ -471,7 +466,6 @@ int main(int argc, char *argv[]){
 
 		glBindVertexArray(modelVAO);
 		
-		
 		//timePast = .5;
 		model = glm::translate(model, sunPos);
 		model = glm::scale(model, 3.f*glm::vec3(1.f, 1.f, 1.f)); //An example of scale
@@ -479,30 +473,22 @@ int main(int argc, char *argv[]){
 		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.4f, 0.2f, .7f)));
 		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3] - mStart[3]);//Sphere as Sun
 
-		model = glm::mat4();
-		model = glm::translate(model, earthPos);
-		model = glm::rotate(model, 23.f/180.f*3.14f, glm::vec3(1.0f, 0.f, 0.0f));//obliquity of the ecliptic
-		model = glm::rotate(model, angleEarthRotation, glm::vec3(0.0f, 0.f, 1.f));
-		model = glm::scale(model, 1.f*glm::vec3(1.f, 1.f, 1.f)); //An example of scale
-		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(0.1f, 0.1f, .9f)));
-		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3] - mStart[3]); //Earth
-
-		model = glm::mat4();
-		model = glm::translate(model, moonPos);
-		model = glm::rotate(model,angleMoonRotation,glm::vec3(0.0f, 0.0f, 1.0f));
-		model = glm::scale(model,.5f*glm::vec3(1.f,1.f,1.f)); //An example of scale
-		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.0f, 0.5f, 0.0f)));
-		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3]-mStart[3]); //(Primitives, Start, Number of vertices)//Moon
-
-
-		model = glm::mat4();
-		model = glm::translate(model, saturnPos);
-		model = glm::scale(model, 1.f*glm::vec3(1.f, 1.f, 1.f)); //An example of scale
-		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(.8f, .3f, .0f)));
-		glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3] - mStart[3]); //Saturn
+		for (int i = 0; i < numPlanets; i++) {
+			model = glm::mat4();
+			glm::vec3 planetPos;
+			if (i==3)//Moon
+				planetPos = earthPos + glm::vec3(planetRadius[i] * sin(planetAngleRevolutions[i]), planetRadius[i] * cos(planetAngleRevolutions[i]), 0);
+			else
+				planetPos = sunPos + glm::vec3(planetRadius[i] * sin(planetAngleRevolutions[i]), planetRadius[i] * cos(planetAngleRevolutions[i]), 0);
+			model = glm::translate(model, planetPos);
+			if(i==2)//Earth
+				model = glm::rotate(model, 23.f / 180.f*3.14f, glm::vec3(1.0f, 0.f, 0.0f));//obliquity of the ecliptic
+			model = glm::rotate(model, planetAngleRotations[i], glm::vec3(0.0f, 0.f, 1.f));
+			model = glm::scale(model, planetSizes[i]*glm::vec3(1.f, 1.f, 1.f)); //An example of scale
+			glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+			glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(0.1f, 0.1f, .9f)));
+			glDrawArrays(GL_TRIANGLES, mStart[3], mEnd[3] - mStart[3]); //Earth
+		}
 
 		model = glm::mat4();
 		model = glm::translate(model, saturnPos);
