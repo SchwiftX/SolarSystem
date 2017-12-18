@@ -35,12 +35,14 @@ float planetRevolutionSpeeds[numPlanets] = {.4f,.25f,.1f,1.2f,.08f,.05f,.03f};//
 float planetRotationSpeeds[numPlanets] = {50.f,42.f,-36.5f,-1.2f,14.f,7.f,5.f};//Ð´ËÀ
 float planetRadius[numPlanets] = {2.f,3.5f,6.3f,1.2f,7.9f,12.f,15.f};//Ð´ËÀ
 float planetSizes[numPlanets] = { .3f,.5f,1.f,.4f,.8f,2.5f,1.f };//Ð´ËÀ
-float planetRevolutionAdjustments[numPlanets];
-float planetRotationAdjustments[numPlanets];
+
+float radiusOfCamera = 20.f;
+float rotationOfCamera = 0.f;
 
 //SJG: Store the object coordinates
 //You should have a representation for the state of each object
 float objx=1.5, objy=0, objz=0;
+float camZ=6.f;
 
 int screenWidth = 800;  //500
 int screenHeight = 600;  //375
@@ -338,50 +340,24 @@ int main(int argc, char *argv[]){
 			//SJG: Use key input to change the state of the object
 			//     We can use the ".mod" flag to see if modifiers such as shift are pressed
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_UP){ //If "up key" is pressed
-				if (windowEvent.key.keysym.mod & KMOD_SHIFT) objz += .1; //Is shift pressed?
+				if (windowEvent.key.keysym.mod & KMOD_SHIFT) 
+					camZ += 1; //Is shift pressed?
 				else {
-					//objx -= .1;
-					/*
-					float oldEarth = baseSpeed*timePast * 3.14f - adjustEarthRev;
-					float oldMoon = baseSpeed*12.f*timePast * 3.14f - adjustMoonRev;
-					float oldEarthRot = -365.f*baseSpeed*timePast * 3.14f - adjustEarthRot;
-					float oldMoonRot = -12.f*baseSpeed*timePast * 3.14f - adjustMoonRot;
-					baseSpeed *= 5;
-					float newEarth = baseSpeed*timePast * 3.14f;
-					float newMoon = baseSpeed*12.f*timePast * 3.14f;
-					float newEarthRot = -365.f*baseSpeed*timePast * 3.14f;
-					float newMoonRot = -12.f*baseSpeed*timePast * 3.14f;
-					adjustEarthRev = newEarth - oldEarth;
-					adjustMoonRev = newMoon - oldMoon;
-					adjustEarthRot = newEarthRot - oldEarthRot;
-					adjustMoonRot = newMoonRot - oldMoonRot;*/
+					if(radiusOfCamera>3)
+						radiusOfCamera -= 1;
 				}
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_DOWN){ //If "down key" is pressed
-				if (windowEvent.key.keysym.mod & KMOD_SHIFT) objz -= .1; //Is shift pressed?
+				if (windowEvent.key.keysym.mod & KMOD_SHIFT) camZ -= 1; //Is shift pressed?
 				else {
-					//objx += .1;
-					/*
-					float oldEarth = baseSpeed*timePast * 3.14f - adjustEarthRev;
-					float oldMoon = baseSpeed*12.f*timePast * 3.14f - adjustMoonRev;
-					float oldEarthRot = -365.f*baseSpeed*timePast * 3.14f - adjustEarthRot;
-					float oldMoonRot = -12.f*baseSpeed*timePast * 3.14f - adjustMoonRot;
-					baseSpeed /= 5;
-					float newEarth = baseSpeed*timePast * 3.14f;
-					float newMoon = baseSpeed*12.f*timePast * 3.14f;
-					float newEarthRot = -365.f*baseSpeed*timePast * 3.14f;
-					float newMoonRot = -12.f*baseSpeed*timePast * 3.14f;
-					adjustEarthRev = newEarth - oldEarth;
-					adjustMoonRev = newMoon - oldMoon;
-					adjustEarthRot = newEarthRot - oldEarthRot;
-					adjustMoonRot = newMoonRot - oldMoonRot;*/
+						radiusOfCamera += 1;
 				}
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_LEFT){ //If "up key" is pressed
-				objy += .1;
+				rotationOfCamera += .01*3.14f;
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_RIGHT){ //If "down key" is pressed
-				objy -= .1;
+				rotationOfCamera -= .01*3.14f;
 			}
 			if (windowEvent.type == SDL_KEYDOWN && windowEvent.key.keysym.sym == SDLK_q){ //If "up key" is pressed
 				eyeSep += .005;
@@ -409,8 +385,8 @@ int main(int argc, char *argv[]){
       //printf("%f FPS\n",1/(newTime-lastTime));
       lastTime = SDL_GetTicks()/1000.f;
 	  for (int i = 0; i < numPlanets; i++) {
-		  planetAngleRevolutions[i] = planetRevolutionSpeeds[i] * timePast*3.14f - planetRevolutionAdjustments[i];
-		  planetAngleRotations[i] = planetRotationSpeeds[i] * timePast*3.14f - planetRotationAdjustments[i];
+		  planetAngleRevolutions[i] = planetRevolutionSpeeds[i] * timePast*3.14f;
+		  planetAngleRotations[i] = planetRotationSpeeds[i] * timePast*3.14f;
 	  }
 	  glm::vec3 sunPos = glm::vec3(0, 0, 0);
 	  glm::vec3 earthPos = sunPos + glm::vec3(planetRadius[2]*sin(planetAngleRevolutions[2]), planetRadius[2] *cos(planetAngleRevolutions[2]), 0);
@@ -437,21 +413,20 @@ int main(int argc, char *argv[]){
 				//glClearColor(1.0f, 1.0f, 1.0f, 1.0f)
 				
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
 		
 		float near_ = .5;
 		float far_ = 100;
 		float ratio  = screenWidth / (float)screenHeight;
 		float fov = 3.14f/3.5;
 		
-		glm::vec3 camPos = glm::vec3(24.0f, 0.0f, 6.0f);
+		glm::vec3 camPos = glm::vec3(radiusOfCamera*cos(rotationOfCamera), radiusOfCamera*sin(rotationOfCamera), camZ);
 		glm::vec3 lookAt = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 right = glm::vec3(0.0f, 1.0f, 0.0f); //TODO: Recompute this!
 			
 			glm::mat4 view = glm::lookAt(
 			camPos,  //Cam Position
 			lookAt,  //Look at point
-			glm::vec3(-1.0f, 0.0f, 4.0f)); //Up
+			glm::vec3(0.0f, 0.0f, 1.0f)); //Up
 		
 			glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
 		
@@ -460,7 +435,6 @@ int main(int argc, char *argv[]){
 		
 		glm::mat4 model;
 		//model = glm::translate(model,glm::vec3(objx,objy,objz));
-		
       
 		glBindTexture(GL_TEXTURE_2D, tex);
 
@@ -499,22 +473,11 @@ int main(int argc, char *argv[]){
 		
 		/*
 		model = glm::mat4();
-		model = glm::translate(model,glm::vec3(-1,-1.6,0));
-		model = glm::rotate(model,-.2f*timePast * 3.14f/2,glm::vec3(0.0f, 1.0f, 1.0f));
-		model = glm::rotate(model,-.2f*timePast * 3.14f/4,glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::scale(model,.8f*glm::vec3(1.f,1.f,1.f)); //An example of scale
-		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
-		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(0.1f, 0.1f, .9f)));
-		glDrawArrays(GL_TRIANGLES, mStart[2], mEnd[2]-mStart[2]);//Cube
-		*/
-		
-		model = glm::mat4();
 		model = glm::translate(model,glm::vec3(0,0,-3.2));
 		model = glm::scale(model,1.f*glm::vec3(40.f,60.f,.1f)); //An example of scale
 		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
 		glUniform3fv(uniColor, 1, glm::value_ptr(glm::vec3(0.6f, 0.6f, .6f)));
-		glDrawArrays(GL_TRIANGLES, mStart[2], mEnd[2]-mStart[2]);//Cube as ground
-		
+		glDrawArrays(GL_TRIANGLES, mStart[2], mEnd[2]-mStart[2]);//Cube as ground*/
     }
       
 	// ==============
